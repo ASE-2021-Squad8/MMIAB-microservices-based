@@ -4,8 +4,8 @@ This is the main repository of Message in a Bottle application, self project of 
 
 ## Team info
 
-- The *squad id* is **<squad_id>**
-- The *team leader* is <team_leader>
+- The *squad id* is **8**
+- The *team leader* is Carlo Leo
 
 #### Members
 
