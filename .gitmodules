@@ -1,0 +1,12 @@
+[submodule "MMIAB-gateway"]
+	path = MMIAB-gateway
+	url = https://github.com/ASE-2021-Squad8/MMIAB-gateway.git
+[submodule "MMIAB-user-microservice"]
+	path = MMIAB-user-microservice
+	url = https://github.com/ASE-2021-Squad8/MMIAB-user-microservice.git
+[submodule "MMIAB-message-microservice"]
+	path = MMIAB-message-microservice
+	url = https://github.com/ASE-2021-Squad8/MMIAB-message-microservice.git
+[submodule "MMIAB-send_notification-microservice"]
+	path = MMIAB-send_notification-microservice
+	url = https://github.com/ASE-2021-Squad8/MMIAB-send_notification-microservice.git
