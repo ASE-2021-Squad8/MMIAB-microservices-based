@@ -9,13 +9,13 @@ This is the main repository of Message in a Bottle application, self project of 
 
 #### Members
 
-| Name and Surname | Email |
-| ---------------- | ----- |
-|                  |       |
-|                  |       |
-|                  |       |
-|                  |       |
-|                  |       |
+| Name and Surname     | Email                            |
+| -------------------- | -------------------------------- |
+| Carlo Leo            | c.leo5@studenti.unipi.it         |
+| Federico Ramacciotti | f.ramacciotti4@studenti.unipi.it |
+| Eli Melucci          | e.melucci1@studenti.unipi.it     |
+| Kostantino Prifti    | k.prifti@studenti.unipi.it       |
+| Gabriele Baschieri   | g.baschieri1@studenti.unipi.it   |
 
 ## Instructions
 

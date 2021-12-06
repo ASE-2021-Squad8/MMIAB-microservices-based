@@ -14,18 +14,18 @@
 version: '3.8'
 
 services:
-  
+
   # -------------------------------------------- #
   # Starting with API Gateway and Load Balancer  #
   # -------------------------------------------- #
- 
+
   nginx_lb_orchestrator:
     #
     # Nginx Orchestrator instance
     #
     container_name: load_balancer_orchestrator
     restart: always
-    build: ./mib-api-gateway/nginx-orchestrator
+    build: ./MMIAB-gateway/nginx-orchestrator
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # WARNING: with Winzozz it does not work, but we need it!
       - nginx_conf:/etc/nginx/conf.d
@@ -36,7 +36,7 @@ services:
     #
     container_name: load_balancer
     restart: always
-    build: ./mib-api-gateway/nginx
+    build: ./MMIAB-gateway/nginx
     labels:
       - mib.nginx_lb
     volumes:
@@ -54,7 +54,7 @@ services:
     # to allow the replication.
     #
     restart: always
-    build: ./mib-api-gateway
+    build: ./MMIAB-gateway
     volumes:
       - static_contents:/static
     env_file:
@@ -67,20 +67,17 @@ services:
   # -------------------------------------------- #
   # Common Services                              #
   # -------------------------------------------- #
-  
-  #
-  # specify here the common services between your
-  # microservices
-  #
 
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
 
   # -------------------------------------------- #
   # Users Microservice                           #
   # -------------------------------------------- #
   users_ms_db:
-    #
     # Users Microservice Database
-    #
     image: library/postgres:10
     restart: on-failure
     env_file:
@@ -92,10 +89,8 @@ services:
       retries: 5
 
   users_ms_migrations:
-    #
     # Users Microservice Migrations
-    #
-    build: ./mib-user
+    build: ./MMIAB-user-microservice
     env_file:
       - users_ms.conf
     environment:
@@ -107,10 +102,8 @@ services:
         condition: service_healthy
 
   users_ms_worker:
-    #
     # Users Microservice Worker node
-    #
-    build: ./mib-user
+    build: ./MMIAB-user-microservice
     restart: on-failure
     env_file:
       - users_ms.conf
@@ -121,19 +114,92 @@ services:
         condition: service_healthy
       users_ms_migrations:
         condition: service_started
-  
-  #
-  # Specify here your microservices
-  # separating services by: db_service, migration_service, worker_service
-  #
+
+  # -------------------------------------------- #
+  # Message Microservice                         #
+  # -------------------------------------------- #
+  message_ms_db:
+    # Message Microservice Database
+    image: library/postgres:10
+    restart: on-failure
+    env_file:
+      - message_ms.conf
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      # this is only for development purpose
+      - "5432:5432"
+
+  message_ms_migrations:
+    # Message Microservice Migrations
+    build: ./MMIAB-message-microservice
+    env_file:
+      - message_ms.conf
+    environment:
+      - POSTGRES_HOST=message_ms_db
+    restart: on-failure
+    command: flask db upgrade
+    depends_on:
+      message_ms_db:
+        condition: service_healthy
+
+  message_ms_celery:
+    # Message Microservice Celery
+    build:
+      context: ./MMIAB-message-microservice
+      dockerfile: DockerfileCelery
+    command: [celery, -A, mib.background, worker, -l, INFO]
+    depends_on:
+      - redis
+      - message_ms_worker
+    env_file:
+      - message_ms.conf
+
+  message_ms_worker:
+    # Message Microservice Worker node
+    build: ./MMIAB-message-microservice
+    restart: on-failure
+    env_file:
+      - message_ms.conf
+    environment:
+      - POSTGRES_HOST=message_ms_db
+    depends_on:
+      message_ms_db:
+        condition: service_healthy
+      message_ms_migrations:
+        condition: service_started
+      users_ms_worker:
+        condition: service_started
+
+  # -------------------------------------------- #
+  # Notifications Microservice                   #
+  # -------------------------------------------- #
+  notifications_ms_worker:
+    # Notifications Microservice Worker node
+    build: ./MMIAB-send_notification-microservice
+    restart: on-failure
+    env_file:
+      - notifications_ms.conf
+
+  # -------------------------------------------- #
+  # Periodic Tasks Microservice                  #
+  # -------------------------------------------- #
+  periodic_task_ms_worker:
+    # Periodic Tasks Microservice Worker node
+    build: ./MMIAB-periodic_tasks-microservice
+    restart: on-failure
+    env_file:
+      - periodic_task_ms.conf
 
 volumes:
   # -------------------------------------------- #
   # Volumes                                      #
   # -------------------------------------------- #
 
-  nginx_conf:
-  # Nginx configuration volume
+  nginx_conf: null
+    # Nginx configuration volume
 
-  static_contents:
-  # API Gateway static content volume
+  static_contents: null # API Gateway static content volume

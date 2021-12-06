@@ -10,3 +10,6 @@
 [submodule "MMIAB-send_notification-microservice"]
 	path = MMIAB-send_notification-microservice
 	url = https://github.com/ASE-2021-Squad8/MMIAB-send_notification-microservice.git
+[submodule "MMIAB-periodic_tasks-microservice"]
+	path = MMIAB-periodic_tasks-microservice
+	url = https://github.com/ASE-2021-Squad8/MMIAB-periodic_tasks-microservice.git
