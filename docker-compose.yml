@@ -87,6 +87,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    ports:
+      # this is only for development purpose
+      - "5432:5432"
 
   users_ms_migrations:
     # Users Microservice Migrations
@@ -129,9 +132,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    ports:
-      # this is only for development purpose
-      - "5432:5432"
+    # ports:
+    #   # this is only for development purpose
+    #   - "5432:5432"
 
   message_ms_migrations:
     # Message Microservice Migrations
@@ -151,7 +154,7 @@ services:
     build:
       context: ./MMIAB-message-microservice
       dockerfile: DockerfileCelery
-    command: [celery, -A, mib.background, worker, -l, INFO]
+    command: [celery, -A, mib.background, worker, -l, INFO, -Q, message]
     depends_on:
       - redis
       - message_ms_worker
@@ -191,6 +194,30 @@ services:
     # Periodic Tasks Microservice Worker node
     build: ./MMIAB-periodic_tasks-microservice
     restart: on-failure
+    depends_on:
+      - redis
+    env_file:
+      - periodic_task_ms.conf
+  
+  periodic_task_ms_celery:
+    # Periodic Tasks Microservice Celery
+    build:
+      context: ./MMIAB-periodic_tasks-microservice
+      dockerfile: DockerfileCelery
+    command: [celery, -A, mib.background, worker , -l, INFO]
+    depends_on:
+      - redis
+    env_file:
+      - periodic_task_ms.conf
+
+  periodic_task_ms_scheduler:
+    # Periodic Tasks Microservice Scheduler
+    build:
+      context: ./MMIAB-periodic_tasks-microservice
+      dockerfile: DockerfileCelery
+    command: [celery, -A, mib.background, beat , -l, INFO]
+    depends_on:
+      - redis
     env_file:
       - periodic_task_ms.conf
 
