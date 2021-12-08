@@ -1,85 +1,92 @@
-import requests
-import json
-
-# indirizzo gateway
+# gateway 
 url = "127.0.0.1"
-
-# porta gateway
 port = "80"
 address = "http://" + url + ":" + port + "/"
 
 
-def test_send_message(text, sender, recipient, media, delivery_date):
+def test_send_message(s, text, sender, recipient, media, delivery_date):
     endpoint = address + "message"
 
-    reply = requests.get(endpoint)
+    reply = s.get(endpoint)
     assert reply.status_code == 200
 
-    reply = requests.post(
+    msg = dict(
+        text=text,
+        sender=sender,
+        recipient=[recipient],
+        attachment=media,
+        delivery_date=delivery_date,
+        timezone="+01:00",
+        draft_id=""
+    )
+    reply = s.post(
         endpoint,
-        data=dict(
-            text=text,
-            sender=sender,
-            recipient=[recipient],
-            attachment=media,
-            delivery_date=delivery_date,
-            draft_id=""
-        ),
+        data=msg,
     )
     assert reply.status_code == 200
 
 
-def test_mailbox():
+def test_mailbox(s):
     endpoint = address + "message/mailbox"
-    reply = requests.get(endpoint)
-
+    reply = s.get(endpoint)
     assert reply.status_code == 200
 
 
-def test_get_message_by_id(msg_id):
+def test_get_message_by_id(s, msg_id):
     endpoint = address + "message/" + str(msg_id)
-    reply = requests.get(endpoint)
+    reply = s.get(endpoint)
     assert reply.status_code == 200
     return reply.json()
 
 
-def test_get_messages_metadata():
+def test_get_messages_metadata(s):
     endpoint = address + "received/metadata"
-    reply = requests.get(endpoint)
+    reply = s.get(endpoint)
     assert reply.status_code == 200
     return reply.json()
 
 
-def test_retrieve_attachment(msg_id):
+def test_retrieve_attachment(s, msg_id):
     endpoint = address + "message/" + str(msg_id) + "/attachment"
-    reply = requests.get(endpoint)
+    reply = s.get(endpoint)
     assert reply.status_code == 200
     return reply.json()
 
 
-def test_get_day_message(day, month, year):
-    endpoint = address + "message/sent/" + str(day) + "/" + str(month) + "/" + str(year)
-    reply = requests.get(endpoint)
+def test_get_day_message(s, day, month, year):
+    endpoint = address + "api/calendar/" + str(day) + "/" + str(month) + "/" + str(year)
+    reply = s.get(endpoint)
     assert reply.status_code == 200
     return reply.json()
 
 
-def test_lottery_delete(msg_id):
-    endpoint = "lottery/" + msg_id
-    reply = requests.delete(endpoint)
-
-    # 401 == Not enough points
-    assert reply.status_code == 401
+def test_lottery_delete(s, msg_id):
+    endpoint = address + "lottery/" + str(msg_id)
+    reply = s.delete(endpoint)
     return reply.json()
 
 
-def test_delete_received_message(msg_id):
+def test_delete_received_message(s, msg_id):
     endpoint = address + "message/bin/" + str(msg_id)
-    reply = requests.delete(endpoint)
+    reply = s.delete(endpoint)
     assert reply.status_code == 200
 
 
-def test_render_calendar():
+def test_render_calendar(s):
     endpoint = address + "message/calendar"
-    reply = requests.get(endpoint)
+    reply = s.get(endpoint)
     assert reply.status_code == 200
+
+
+def test_received_messages_metadata(s):
+    endpoint = address + "received/metadata"
+    reply = s.get(endpoint)
+    assert reply.status_code == 200
+    return reply.json()
+
+
+def test_sent_messages_metadata(s):
+    endpoint = address + "sent/metadata"
+    reply = s.get(endpoint)
+    assert reply.status_code == 200
+    return reply.json()
